@@ -1,8 +1,11 @@
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class Solution implements CommandRunner {
 
     private HashMap<Long, Thread> runningCalculations = new HashMap<>();
+    private HashMap<Long, SlowCalculator> calculationObjects = new HashMap<>();
 
     public Solution() {
         // Empty constructor.
@@ -24,19 +27,21 @@ public class Solution implements CommandRunner {
         if (commandString.equals("start")) {
             // start N
             Long n = Long.parseLong(commandFull[1]);
-            commandStart(n);
+            return commandStart(n);
 
         } else if (commandString.equals("cancel")) {
             // cancel N
             Long n = Long.parseLong(commandFull[1]);
-            commandCancel(n);
+            return commandCancel(n);
 
         } else if (commandString.equals("running")) {
             // running
-            commandRunning();
+            return commandRunning();
 
         } else if (commandString.equals("get")) {
             // get N
+            Long n = Long.parseLong(commandFull[1]);
+            return commandGet(n);
 
         } else if (commandString.equals("after")) {
             // after N M
@@ -55,7 +60,7 @@ public class Solution implements CommandRunner {
 
     }
 
-    public String commandStart(Long n) {
+    private String commandStart(Long n) {
         /*
          * start calculating with input N , by calling
          * SlowCalculator.run on a new thread; imme-
@@ -64,6 +69,7 @@ public class Solution implements CommandRunner {
 
         SlowCalculator slowCalculator = new SlowCalculator(n);
         Thread thread = new Thread(slowCalculator);
+        this.calculationObjects.put(n, slowCalculator);
         this.runningCalculations.put(n, thread);
         thread.start();
 
@@ -71,7 +77,7 @@ public class Solution implements CommandRunner {
 
     }
 
-    public String commandCancel(Long n) {
+    private String commandCancel(Long n) {
         /*
          * immediately cancel the calculation with input N
          * that is currently running or pending with after (do
@@ -88,7 +94,7 @@ public class Solution implements CommandRunner {
 
     }
 
-    public String commandRunning() {
+    private String commandRunning() {
         /*
          * return a message indicating the total number
          * of calculations currently running (i.e. exclud-
@@ -98,21 +104,46 @@ public class Solution implements CommandRunner {
          * If no calculations are running, return the string “no
          * calculations running”.
          */
-        if (this.runningCalculations.isEmpty()) {
-            return "no calculations running";
-        } else {
-            String output = this.runningCalculations.size() + " calculations running:";
 
-            for (Long calculation : this.runningCalculations.keySet()) {
-                output += " " + Long.toString(calculation);
+        try {
+            if (this.runningCalculations.isEmpty()) {
+                return "no calculations running";
+            } else {
+
+                // check if the calculations are completed.
+                // if so, remove from runningCalculations.
+
+                Iterator<Map.Entry<Long, Thread>> iterator = this.runningCalculations.entrySet().iterator();
+
+                while (iterator.hasNext()) {
+                    Map.Entry<Long, Thread> entry = iterator.next();
+                    if (!entry.getValue().isAlive()) {
+                        // thread has finished
+                        iterator.remove();
+                    }
+                }
+
+                if (this.runningCalculations.size() == 0) {
+                    return "no calculations running";
+                }
+
+                String output = this.runningCalculations.size() + " calculations running:";
+
+                for (Long calculation : this.runningCalculations.keySet()) {
+                    output += " " + Long.toString(calculation);
+                }
+
+                return output;
             }
-
-            return output;
+        } catch (Exception e) {
+            e.getStackTrace();
         }
+
+        return null;
 
     }
 
-    public String commandGet(Long n) {
+    private String commandGet(Long n) {
         /*
          * if the calculation for N is finished, return message
          * “result is M ” where M is the integer result; if
@@ -122,11 +153,22 @@ public class Solution implements CommandRunner {
          * the calculation is scheduled with after but not yet
          * started, return message “waiting”.
          */
-        return null;
 
+        if (runningCalculations.get(n) == null && calculationObjects.get(n).getResult() == -1) {
+            // cancelled calculation
+            return "cancelled";
+        } else if (runningCalculations.get(n) == null && calculationObjects.get(n).getResult() != -1) {
+            // calculation done,
+            return "result is " + Integer.toString(calculationObjects.get(n).getResult());
+        } else if (runningCalculations.get(n).isAlive() && calculationObjects.get(n).getResult() == -1) {
+            // calculation not yet finished
+            return "calculating";
+        } else {
+            return null;
+        }
     }
 
-    public String commandAfter(Long n, Long m) {
+    private String commandAfter(Long n, Long m) {
         /*
          * schedule the calculation for M to start when that for
          * N finishes (or is cancelled). Return the message “M
@@ -148,7 +190,7 @@ public class Solution implements CommandRunner {
 
     }
 
-    public String commandFinish() {
+    private String commandFinish() {
         /*
          * wait for all calculations previously requested by the
          * user (including those scheduled with after) to fin-
@@ -158,7 +200,7 @@ public class Solution implements CommandRunner {
         return null;
     }
 
-    public String commandAbort() {
+    private String commandAbort() {
         /*
          * immediately stop all running calculations (and dis-
          * card any scheduled using after), and then when

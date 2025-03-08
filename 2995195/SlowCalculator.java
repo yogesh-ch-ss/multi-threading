@@ -1,14 +1,21 @@
 public class SlowCalculator implements Runnable {
 
     private final long N;
+    private int result;
 
     public SlowCalculator(final long N) {
         this.N = N;
+        this.result = -1;
+    }
+
+    public int getResult(){
+        return this.result;
     }
 
     public void run() {
         final int result = calculateNumFactors(N);
-        System.out.println(result);  // you'll be changing this
+        // System.out.println(result);  // you'll be changing this
+        this.result = result;
     }
 
     private static int calculateNumFactors(final long N) {
