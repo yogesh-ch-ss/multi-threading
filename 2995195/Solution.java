@@ -52,7 +52,7 @@ public class Solution implements CommandRunner {
             Long n = Long.parseLong(commandFull[1]);
             Long m = Long.parseLong(commandFull[2]);
             return commandAfter(n, m);
-            
+
         } else if (commandString.equals("finish")) {
             // finish
 
@@ -104,6 +104,13 @@ public class Solution implements CommandRunner {
 
         Thread thread = this.runningCalculations.get(n);
         thread.interrupt();
+
+        try {
+            thread.join(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         this.runningCalculations.remove(n);
 
         return "cancelled " + n;
@@ -236,6 +243,11 @@ public class Solution implements CommandRunner {
 
         for (Thread thread : this.runningCalculations.values()) {
             thread.interrupt();
+            try {
+                thread.join(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
         this.runningCalculations.clear();
         this.afterHashMap.clear();
