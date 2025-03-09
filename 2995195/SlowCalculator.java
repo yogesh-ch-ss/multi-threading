@@ -8,20 +8,22 @@ public class SlowCalculator implements Runnable {
         this.result = -1;
     }
 
-    public int getResult(){
+    public int getResult() {
         return this.result;
     }
 
     public void run() {
         final int result = calculateNumFactors(N);
-        // System.out.println(result);  // you'll be changing this
         this.result = result;
     }
 
     private static int calculateNumFactors(final long N) {
-        // This (very inefficiently) finds and returns the number of unique prime factors of |N|
-        // You don't need to think about the mathematical details; what's important is that it does some slow calculation taking N as input
-        // You should NOT modify the calculation performed by this class, but you may want to add support for interruption
+        // This (very inefficiently) finds and returns the number of unique prime
+        // factors of |N|
+        // You don't need to think about the mathematical details; what's important is
+        // that it does some slow calculation taking N as input
+        // You should NOT modify the calculation performed by this class, but you may
+        // want to add support for interruption
         int count = 0;
         for (long candidate = 2; candidate < Math.abs(N); ++candidate) {
             if (isPrime(candidate)) {

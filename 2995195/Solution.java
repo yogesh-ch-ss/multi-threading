@@ -1,11 +1,15 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class Solution implements CommandRunner {
 
     private HashMap<Long, Thread> runningCalculations = new HashMap<>();
     private HashMap<Long, SlowCalculator> calculationObjects = new HashMap<>();
+
+    private HashMap<Long, List<Long>> afterHashMap = new HashMap<>();
 
     public Solution() {
         // Empty constructor.
@@ -45,12 +49,16 @@ public class Solution implements CommandRunner {
 
         } else if (commandString.equals("after")) {
             // after N M
-
+            Long n = Long.parseLong(commandFull[1]);
+            Long m = Long.parseLong(commandFull[2]);
+            return commandAfter(n, m);
+            
         } else if (commandString.equals("finish")) {
             // finish
 
         } else if (commandString.equals("abort")) {
             // abort
+            return commandAbort();
 
         } else {
             return "Invalid Command";
@@ -60,7 +68,7 @@ public class Solution implements CommandRunner {
 
     }
 
-    private String commandStart(Long n) {
+    private synchronized String commandStart(Long n) {
         /*
          * start calculating with input N , by calling
          * SlowCalculator.run on a new thread; imme-
@@ -68,9 +76,17 @@ public class Solution implements CommandRunner {
          */
 
         SlowCalculator slowCalculator = new SlowCalculator(n);
-        Thread thread = new Thread(slowCalculator);
-        this.calculationObjects.put(n, slowCalculator);
+        // Thread thread = new Thread(slowCalculator);
+
+        Thread thread = new Thread(() -> {
+            slowCalculator.run();
+            // once the thread finishes, it calls finishThread(n)
+            finshThread(n);
+        });
+
         this.runningCalculations.put(n, thread);
+        this.calculationObjects.put(n, slowCalculator);
+
         thread.start();
 
         return "started " + n;
@@ -86,9 +102,9 @@ public class Solution implements CommandRunner {
          * within 0.1s) return message “cancelled N ”
          */
 
-        Thread thread = runningCalculations.get(n);
+        Thread thread = this.runningCalculations.get(n);
         thread.interrupt();
-        runningCalculations.remove(n);
+        this.runningCalculations.remove(n);
 
         return "cancelled " + n;
 
@@ -113,15 +129,7 @@ public class Solution implements CommandRunner {
                 // check if the calculations are completed.
                 // if so, remove from runningCalculations.
 
-                Iterator<Map.Entry<Long, Thread>> iterator = this.runningCalculations.entrySet().iterator();
-
-                while (iterator.hasNext()) {
-                    Map.Entry<Long, Thread> entry = iterator.next();
-                    if (!entry.getValue().isAlive()) {
-                        // thread has finished
-                        iterator.remove();
-                    }
-                }
+                // this.updateRunningCalculations();
 
                 if (this.runningCalculations.size() == 0) {
                     return "no calculations running";
@@ -130,7 +138,7 @@ public class Solution implements CommandRunner {
                 String output = this.runningCalculations.size() + " calculations running:";
 
                 for (Long calculation : this.runningCalculations.keySet()) {
-                    output += " " + Long.toString(calculation);
+                    output += " " + calculation;
                 }
 
                 return output;
@@ -154,21 +162,22 @@ public class Solution implements CommandRunner {
          * started, return message “waiting”.
          */
 
-        if (runningCalculations.get(n) == null && calculationObjects.get(n).getResult() == -1) {
+        if (runningCalculations.get(n) == null && calculationObjects.get(n).getResult() != -1) {
+            // calculation done,
+            return "result is " + calculationObjects.get(n).getResult();
+        } else if (runningCalculations.get(n) == null) {
             // cancelled calculation
             return "cancelled";
-        } else if (runningCalculations.get(n) == null && calculationObjects.get(n).getResult() != -1) {
-            // calculation done,
-            return "result is " + Integer.toString(calculationObjects.get(n).getResult());
         } else if (runningCalculations.get(n).isAlive() && calculationObjects.get(n).getResult() == -1) {
             // calculation not yet finished
             return "calculating";
         } else {
-            return null;
+            // scheduled with after, but not yet started
+            return "waiting";
         }
     }
 
-    private String commandAfter(Long n, Long m) {
+    private synchronized String commandAfter(Long n, Long m) {
         /*
          * schedule the calculation for M to start when that for
          * N finishes (or is cancelled). Return the message “M
@@ -186,6 +195,23 @@ public class Solution implements CommandRunner {
          * ter N, recursively), and which M is itself scheduled
          * after (these can be listed in any order)
          */
+
+        // this.updateRunningCalculations();
+
+        // circular dependency
+
+        if (runningCalculations.get(n) == null && calculationObjects.get(n).getResult() != -1) {
+            // if N has already finished, M should start immediately.
+            return commandStart(m);
+        }
+
+        if (runningCalculations.get(n) != null) {
+            // if N is still running, M should start after N
+            afterHashMap.computeIfAbsent(n, k -> new ArrayList<>()).add(m);
+            // ...
+            return m + " will start after " + n;
+        }
+
         return null;
 
     }
@@ -207,7 +233,30 @@ public class Solution implements CommandRunner {
          * they are stopped (which should be within 0.1s) re-
          * turn message “aborted”
          */
-        return null;
+
+        for (Thread thread : this.runningCalculations.values()) {
+            thread.interrupt();
+        }
+        this.runningCalculations.clear();
+        this.afterHashMap.clear();
+        return "aborted";
+    }
+
+    // HELPER METHODS
+
+    private void finshThread(Long n) {
+        /*
+         * after finishing the thread,
+         * it removes the thread from runningCalculations
+         * initiates the threads that need to start after n
+         */
+        this.runningCalculations.remove(n);
+        if (this.afterHashMap.containsKey(n)) {
+            for (Long m : this.afterHashMap.get(n)) {
+                commandStart(m);
+            }
+        }
+
     }
 
 }
