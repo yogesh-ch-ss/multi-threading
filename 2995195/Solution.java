@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -195,15 +196,20 @@ public class Solution implements CommandRunner {
          * after should not schedule M , but instead return the
          * message “circular dependency N... M ” where
          * ... is replaced by the numbers of all calculations
-         * scheduled after N (or after another that is itself af-
-         * ter N, recursively), and which M is itself scheduled
+         * scheduled after M (or after another that is itself af-
+         * ter M, recursively), and which N is itself scheduled
          * after (these can be listed in any order)
          */
 
         // circular dependency
-        Set<Long> visited = new HashSet<>();
-        if (this.isCyclic(n, m, visited)) {
-            return "cyclic";
+        if (this.isCircular(n, m)) {
+            String circularOutputString = "circular dependency";
+            List<Long> circularPath = this.getCircularPath(n, m);
+
+            for (Long p : circularPath) {
+                circularOutputString += " " + p;
+            }
+            return circularOutputString;
         }
 
         if (this.finishedCalculations.contains(n)) {
@@ -230,8 +236,8 @@ public class Solution implements CommandRunner {
 
         while (!this.runningCalculations.isEmpty() || !this.afterHashMap.isEmpty()) {
             try {
-                wait(100);
-                System.out.println(".");
+                wait(5000);
+                System.out.println("...");
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -280,23 +286,66 @@ public class Solution implements CommandRunner {
         }
     }
 
-    private boolean isCyclic(Long start, Long target, Set<Long> visited) {
-        if (start == target) {
+    private boolean isCircular(Long n, long m) {
+        Set<Long> visited = new HashSet<>();
+        return this.isCircularHelper(n, m, visited);
+    }
+
+    private boolean isCircularHelper(Long n, Long m, Set<Long> visited) {
+        // implements dfs
+
+        if (this.afterHashMap.containsKey(m) && this.afterHashMap.get(m).contains(n)) {
+            // if m is in the hash map and the value of n is present on the key m,
+            // it is cyclic dependent
             return true;
         }
 
-        if (!this.afterHashMap.containsKey(start)) {
+        if (!this.afterHashMap.containsKey(m) || visited.contains(m)) {
+            // if m is not in the hash map or if m has been visited already
             return false;
         }
 
-        visited.add(start);
-        for (Long next : this.afterHashMap.get(start)) {
-            if (!visited.contains(next) && this.isCyclic(next, target, visited)) {
+        visited.add(m);
+
+        for (Long v : this.afterHashMap.get(m)) {
+            // Check by dfs by traversing to every value v in the key of m
+            if (this.isCircularHelper(n, v, visited)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    private List<Long> getCircularPath(Long n, Long m) {
+        List<Long> path = new ArrayList<>();
+        path.add(m);
+        this.getCircularPathHelper(n, m, path);
+        return path;
+    }
+
+    private void getCircularPathHelper(Long n, Long m, List<Long> path) {
+        // System.out.println(Arrays.toString(path.toArray()));
+
+        // base condition
+        if (n == m) {
+            return;
+        }
+
+        // find the key of the value n
+        Long key = null;
+        for (Long k : this.afterHashMap.keySet()) {
+            if (this.afterHashMap.get(k).contains(n)) {
+                key = k;
+                break;
+            }
+        }
+
+        if (key != null)
+            path.add(key);
+
+        this.getCircularPathHelper(key, m, path);
+        return;
     }
 
 }
