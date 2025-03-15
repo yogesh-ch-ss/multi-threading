@@ -15,7 +15,7 @@ public class AP_tester_kohei {
 		// competingAfterTester(solution);
 		// CancelThreadWhileWaitingTester(solution);
 		// CancelMiddleOfMultipleWaitingThreadsTester(solution);
-		multipleGetStatusTester(solution);
+		// multipleGetStatusTester(solution);
 		// finishCalculationTester(solution);
 		// nothingToFinishTester(solution);
 		// wrongCommandsTester(solution);
@@ -181,6 +181,7 @@ public class AP_tester_kohei {
 		System.out.println(solution.runCommand("start 11111111"));
 		System.out.println("takes about 15 seconds to finished");
 		System.out.println(solution.runCommand("finish"));
+		System.out.println(solution.runCommand("get 11111111"));
 	}
 
 	public static void nothingToFinishTester(Solution solution) {

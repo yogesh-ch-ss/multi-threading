@@ -26,6 +26,9 @@ public class SlowCalculator implements Runnable {
         // want to add support for interruption
         int count = 0;
         for (long candidate = 2; candidate < Math.abs(N); ++candidate) {
+            if (Thread.currentThread().isInterrupted()) {
+                return -2;
+            }
             if (isPrime(candidate)) {
                 if (Math.abs(N) % candidate == 0) {
                     count++;

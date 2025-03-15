@@ -92,7 +92,7 @@ public class Solution implements CommandRunner {
             // once the thread finishes, it calls finishThread(n),
             // which starts the "after n m"
             this.finshThread(n);
-        });
+        }, String.valueOf(n));
 
         this.runningCalculations.put(n, thread);
         this.calculationObjects.put(n, slowCalculator);
@@ -103,7 +103,7 @@ public class Solution implements CommandRunner {
 
     }
 
-    private synchronized String commandCancel(Long n) {
+    private String commandCancel(Long n) {
         /*
          * immediately cancel the calculation with input N
          * that is currently running or pending with after (do
@@ -112,37 +112,47 @@ public class Solution implements CommandRunner {
          * within 0.1s) return message “cancelled N ”
          */
 
-        // cancelling a non running calculation
-        if (!this.runningCalculations.containsKey(n)) {
-            // scan if n is pending in after hashmap
-            for (List<Long> afterValues : this.afterHashMap.values()) {
-                if (afterValues.contains(n)) {
-                    afterValues.remove(n);
+        Thread thread;
+
+        synchronized (this) {
+
+            // cancelling a finished calculation
+            if (this.finishedCalculations.contains(n)) {
+                return "calculation already finished";
+            }
+
+            // cancelling a non running calculation
+            if (!this.runningCalculations.containsKey(n)) {
+                // scan if n is pending in after hashmap
+                for (List<Long> afterValues : this.afterHashMap.values()) {
+                    if (afterValues.contains(n)) {
+                        afterValues.remove(n);
+                    }
                 }
-            }
 
-            if (this.afterHashMap.containsKey(n)) {
-                // start threads after n even if n is not running currently
-                this.startThreadsAfterN(n);
-                this.cancelledCalculations.add(n);
-                return "removed from after";
-            }
+                if (this.afterHashMap.containsKey(n)) {
+                    // start threads after n even if n is not running currently
+                    this.startThreadsAfterN(n);
+                    this.cancelledCalculations.add(n);
+                    return "removed from after";
+                }
 
-            //
-            return "cancelled non-existent calculation";
+                //
+                return "cancelled non-existent calculation";
+            }
         }
 
-        Thread thread = this.runningCalculations.get(n);
+        thread = this.runningCalculations.get(n);
         thread.interrupt();
 
         try {
-            thread.join(100);
+            thread.join();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            e.getStackTrace();
         }
 
-        this.runningCalculations.remove(n);
-        this.cancelledCalculations.add(n);
+        // this.runningCalculations.remove(n);
+        // this.cancelledCalculations.add(n);
 
         // starts the threads that must start after n
         this.startThreadsAfterN(n);
@@ -250,7 +260,6 @@ public class Solution implements CommandRunner {
         {
             // if N is still running, M should start after N
             afterHashMap.computeIfAbsent(n, k -> new ArrayList<>()).add(m);
-            // ...
             return m + " will start after " + n;
         }
 
@@ -266,17 +275,16 @@ public class Solution implements CommandRunner {
 
         while (!this.runningCalculations.isEmpty() || !this.afterHashMap.isEmpty()) {
             try {
-                wait(5000);
-                System.out.println("...");
+                wait(1);
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                e.printStackTrace();
             }
         }
 
         return "finished";
     }
 
-    private synchronized String commandAbort() {
+    private String commandAbort() {
         /*
          * immediately stop all running calculations (and dis-
          * card any scheduled using after), and then when
@@ -284,33 +292,55 @@ public class Solution implements CommandRunner {
          * turn message “aborted”
          */
 
-        for (Thread thread : this.runningCalculations.values()) {
-            thread.interrupt();
-            try {
-                thread.join(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        synchronized (this) {
+            this.afterHashMap.clear();
+        }
+
+        Set<Thread> currentRunningThreads2;
+        synchronized (this) {
+            Set<Thread> currentRunningThreads = new HashSet<Thread>(this.runningCalculations.values());
+            currentRunningThreads2 = new HashSet<Thread>(this.runningCalculations.values());
+            for (Thread thread : currentRunningThreads) {
+                if (thread.isAlive()) {
+                    thread.interrupt();
+                }
             }
         }
-        this.runningCalculations.clear();
-        this.afterHashMap.clear();
+
+        for (Thread thread : currentRunningThreads2) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        synchronized (this) {
+            this.runningCalculations.clear();
+            this.afterHashMap.clear();
+        }
+
         return "aborted";
     }
 
     // HELPER METHODS
 
-    private void finshThread(Long n) {
+    private synchronized void finshThread(Long n) {
         /*
          * after finishing the thread,
          * it removes the thread from runningCalculations
          * initiates the threads that need to start after n
          */
         this.runningCalculations.remove(n);
-        this.finishedCalculations.add(n);
+        if (this.calculationObjects.get(n).getResult() == -2) {
+            this.cancelledCalculations.add(n);
+        } else {
+            this.finishedCalculations.add(n);
+        }
         this.startThreadsAfterN(n);
     }
 
-    private void startThreadsAfterN(Long n) {
+    private synchronized void startThreadsAfterN(Long n) {
         if (this.afterHashMap.containsKey(n)) {
             List<Long> nextThreads = this.afterHashMap.get(n);
             this.afterHashMap.remove(n);
