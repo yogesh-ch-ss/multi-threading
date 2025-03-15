@@ -11,7 +11,6 @@ public class Solution implements CommandRunner {
     private HashMap<Long, SlowCalculator> calculationObjects = new HashMap<>();
     private Set<Long> finishedCalculations = new HashSet<>();
     private Set<Long> cancelledCalculations = new HashSet<>();
-
     private HashMap<Long, List<Long>> afterHashMap = new HashMap<>();
 
     public Solution() {
@@ -77,6 +76,14 @@ public class Solution implements CommandRunner {
          * diately return the message “started N ”
          */
 
+        // do not start if the same calucation is already running or completed
+        if (this.runningCalculations.containsKey(n)) {
+            return "calculation is already running";
+        }
+        if (this.finishedCalculations.contains(n)) {
+            return "calculation is already finished";
+        }
+
         SlowCalculator slowCalculator = new SlowCalculator(n);
 
         // defining the thread and what it does
@@ -105,6 +112,20 @@ public class Solution implements CommandRunner {
          * within 0.1s) return message “cancelled N ”
          */
 
+        // cancelling a non running calculation
+        if (!this.runningCalculations.containsKey(n)) {
+            // scan if n is pending in after hashmap
+            for (List<Long> afterValues : this.afterHashMap.values()) {
+                if (afterValues.contains(n)) {
+                    afterValues.remove(n);
+                }
+                return "removed from after";
+            }
+
+            //
+            return "cancelled non-existent calculation";
+        }
+
         Thread thread = this.runningCalculations.get(n);
         thread.interrupt();
 
@@ -116,6 +137,9 @@ public class Solution implements CommandRunner {
 
         this.runningCalculations.remove(n);
         this.cancelledCalculations.add(n);
+
+        // starts the threads that must start after n
+        this.startThreadsAfterN(n);
 
         return "cancelled " + n;
 
@@ -212,8 +236,8 @@ public class Solution implements CommandRunner {
             return circularOutputString;
         }
 
-        if (this.finishedCalculations.contains(n)) {
-            // if N has already finished, M should start immediately.
+        if (this.finishedCalculations.contains(n) || this.cancelledCalculations.contains(n)) {
+            // if N has already finished or cancelled, M should start immediately.
             return commandStart(m);
         }
 
@@ -277,6 +301,10 @@ public class Solution implements CommandRunner {
          */
         this.runningCalculations.remove(n);
         this.finishedCalculations.add(n);
+        this.startThreadsAfterN(n);
+    }
+
+    private void startThreadsAfterN(Long n) {
         if (this.afterHashMap.containsKey(n)) {
             List<Long> nextThreads = this.afterHashMap.get(n);
             this.afterHashMap.remove(n);
@@ -319,7 +347,7 @@ public class Solution implements CommandRunner {
 
     private List<Long> getCircularPath(Long n, Long m) {
         List<Long> path = new ArrayList<>();
-        path.add(m);
+        path.add(n);
         this.getCircularPathHelper(n, m, path);
         return path;
     }

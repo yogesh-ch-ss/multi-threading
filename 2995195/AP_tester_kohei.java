@@ -5,7 +5,7 @@ public class AP_tester_kohei {
 		
 		// KOHEI's
 		// instructionTester(solution);
-		System.out.println(abortSpeedTester(solution));
+		// System.out.println(abortSpeedTester(solution));
 		// successiveAfterTester(solution);
 		// AfterNoRunnableThread(solution);
 		// noCalculationTester(solution);
