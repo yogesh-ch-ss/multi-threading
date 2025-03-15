@@ -119,6 +119,12 @@ public class Solution implements CommandRunner {
                 if (afterValues.contains(n)) {
                     afterValues.remove(n);
                 }
+            }
+
+            if (this.afterHashMap.containsKey(n)) {
+                // start threads after n even if n is not running currently
+                this.startThreadsAfterN(n);
+                this.cancelledCalculations.add(n);
                 return "removed from after";
             }
 
@@ -197,7 +203,7 @@ public class Solution implements CommandRunner {
         } else if (this.cancelledCalculations.contains(n)) {
             // cancelled calculation
             return "cancelled";
-        } else if (runningCalculations.get(n).isAlive()) {
+        } else if (this.runningCalculations.containsKey(n) && this.runningCalculations.get(n).isAlive()) {
             // calculation not yet finished
             return "calculating";
         } else {

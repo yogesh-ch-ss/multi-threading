@@ -15,7 +15,7 @@ public class AP_tester_kohei {
 		// competingAfterTester(solution);
 		// CancelThreadWhileWaitingTester(solution);
 		// CancelMiddleOfMultipleWaitingThreadsTester(solution);
-		// multipleGetStatusTester(solution);
+		multipleGetStatusTester(solution);
 		// finishCalculationTester(solution);
 		// nothingToFinishTester(solution);
 		// wrongCommandsTester(solution);
