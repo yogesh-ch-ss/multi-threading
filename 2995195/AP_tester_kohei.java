@@ -21,6 +21,7 @@ public class AP_tester_kohei {
 
 		// MY TESTERs
 		// circularDependencyPathTester(solution); // PASS
+		// callGetAfterCancelAndAbort(solution); // PASS
 	}
 
 	public static void instructionTester(Solution solution) {
@@ -239,5 +240,15 @@ public class AP_tester_kohei {
 		System.out.println(solution.runCommand("after 76 77"));
 		System.out.println(solution.runCommand("after 77 73"));
 		System.out.println(solution.runCommand("after 77 71"));
+	}
+
+	public static void callGetAfterCancelAndAbort(Solution solution) {
+		System.out.println(solution.runCommand("start 88888888"));
+		System.out.println(solution.runCommand("start 99999999"));
+		System.out.println(solution.runCommand("cancel 88888888"));
+		System.out.println(solution.runCommand("get 88888888"));
+		System.out.println(solution.runCommand("abort"));
+		System.out.println(solution.runCommand("get 88888888"));
+		System.out.println(solution.runCommand("get 99999999"));
 	}
 }
