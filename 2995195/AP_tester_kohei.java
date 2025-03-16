@@ -1,27 +1,26 @@
 public class AP_tester_kohei {
 	public static void main(String[] args) {
 		Solution solution = new Solution();
-		
-		
+
 		// KOHEI's
-		// instructionTester(solution);
-		// System.out.println(abortSpeedTester(solution));
-		// successiveAfterTester(solution);
-		// AfterNoRunnableThread(solution);
-		// noCalculationTester(solution);
-		// circularDependencyTester(solution);
-		// cancelNonExistant(solution);
-		// System.out.println(cancelSpeedTester(solution));
-		// competingAfterTester(solution);
-		// CancelThreadWhileWaitingTester(solution);
-		// CancelMiddleOfMultipleWaitingThreadsTester(solution);
-		// multipleGetStatusTester(solution);
-		// finishCalculationTester(solution);
-		// nothingToFinishTester(solution);
+		// instructionTester(solution); // PASS
+		// System.out.println(abortSpeedTester(solution)); // PASS
+		// successiveAfterTester(solution); // PASS
+		// AfterNoRunnableThread(solution); // PASS
+		// noCalculationTester(solution); // PASS
+		// circularDependencyTester(solution); // PASS
+		// cancelNonExistant(solution); // PASS
+		// System.out.println(cancelSpeedTester(solution)); // PASS
+		// competingAfterTester(solution); // PASS
+		// CancelThreadWhileWaitingTester(solution); // PASS
+		// CancelMiddleOfMultipleWaitingThreadsTester(solution); //PASS
+		// multipleGetStatusTester(solution); // PASS
+		// finishCalculationTester(solution); // PASS
+		// nothingToFinishTester(solution); // PASS
 		// wrongCommandsTester(solution);
 
 		// MY TESTERs
-		// circularDependencyPathTester(solution);
+		// circularDependencyPathTester(solution); // PASS
 	}
 
 	public static void instructionTester(Solution solution) {
@@ -52,6 +51,7 @@ public class AP_tester_kohei {
 		System.out.println("should abort less than 100ms");
 		long startTime = System.currentTimeMillis();
 		System.out.println(solution.runCommand("cancel 1723456800"));
+		System.out.println(solution.runCommand("running"));
 		System.out.println(solution.runCommand("abort"));
 		long endTime = System.currentTimeMillis();
 		long duration = endTime - startTime;
@@ -195,6 +195,7 @@ public class AP_tester_kohei {
 		System.out.println(solution.runCommand("cancel 33333333"));
 		System.out.println(solution.runCommand("cancel 44444444"));
 		System.out.println(solution.runCommand("cancel 55555555"));
+		System.out.println(solution.runCommand("running"));
 		System.out.println("should immediately says finished");
 		System.out.println(solution.runCommand("finish"));
 	}
@@ -235,6 +236,8 @@ public class AP_tester_kohei {
 		System.out.println(solution.runCommand("after 73 75"));
 		System.out.println(solution.runCommand("after 75 76"));
 		System.out.println(solution.runCommand("after 76 71"));
-
+		System.out.println(solution.runCommand("after 76 77"));
+		System.out.println(solution.runCommand("after 77 73"));
+		System.out.println(solution.runCommand("after 77 71"));
 	}
 }

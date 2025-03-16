@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,36 +29,36 @@ public class Solution implements CommandRunner {
         String[] commandFull = command.split(" ");
         String commandString = commandFull[0];
 
-        if (commandString.equals("start")) {
+        if (commandFull.length == 2 && commandString.equals("start")) {
             // start N
             Long n = Long.parseLong(commandFull[1]);
             return commandStart(n);
 
-        } else if (commandString.equals("cancel")) {
+        } else if (commandFull.length == 2 && commandString.equals("cancel")) {
             // cancel N
             Long n = Long.parseLong(commandFull[1]);
             return commandCancel(n);
 
-        } else if (commandString.equals("running")) {
+        } else if (commandFull.length == 1 && commandString.equals("running")) {
             // running
             return commandRunning();
 
-        } else if (commandString.equals("get")) {
+        } else if (commandFull.length == 2 && commandString.equals("get")) {
             // get N
             Long n = Long.parseLong(commandFull[1]);
             return commandGet(n);
 
-        } else if (commandString.equals("after")) {
+        } else if (commandFull.length == 3 && commandString.equals("after")) {
             // after N M
             Long n = Long.parseLong(commandFull[1]);
             Long m = Long.parseLong(commandFull[2]);
             return commandAfter(n, m);
 
-        } else if (commandString.equals("finish")) {
+        } else if (commandFull.length == 1 && commandString.equals("finish")) {
             // finish
             return commandFinish();
 
-        } else if (commandString.equals("abort")) {
+        } else if (commandFull.length == 1 && commandString.equals("abort")) {
             // abort
             return commandAbort();
 
@@ -333,8 +332,12 @@ public class Solution implements CommandRunner {
          */
         this.runningCalculations.remove(n);
         if (this.calculationObjects.get(n).getResult() == -2) {
+            // if the calculation thread is interrupted (cancelled/abort),
+            // the calculation gets added to cancelledCalculations.
             this.cancelledCalculations.add(n);
         } else {
+            // if the calculation thread is finished graciously,
+            // the calculation gets added to finishedCalculations.
             this.finishedCalculations.add(n);
         }
         this.startThreadsAfterN(n);
