@@ -63,7 +63,7 @@ public class Solution implements CommandRunner {
             return commandAbort();
 
         } else {
-            return "Invalid Command";
+            return "Invalid command";
         }
 
     }

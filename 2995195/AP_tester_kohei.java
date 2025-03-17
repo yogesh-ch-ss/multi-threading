@@ -17,7 +17,7 @@ public class AP_tester_kohei {
 		// multipleGetStatusTester(solution); // PASS
 		// finishCalculationTester(solution); // PASS
 		// nothingToFinishTester(solution); // PASS
-		// wrongCommandsTester(solution);
+		wrongCommandsTester(solution);
 
 		// MY TESTERs
 		// circularDependencyPathTester(solution); // PASS
