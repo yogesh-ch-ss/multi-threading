@@ -17,11 +17,11 @@ public class AP_tester_kohei {
 		// multipleGetStatusTester(solution); // PASS
 		// finishCalculationTester(solution); // PASS
 		// nothingToFinishTester(solution); // PASS
-		wrongCommandsTester(solution);
+		// wrongCommandsTester(solution); //PASS
 
 		// MY TESTERs
 		// circularDependencyPathTester(solution); // PASS
-		// callGetAfterCancelAndAbort(solution); // PASS
+		callGetAfterCancelAndAbort(solution); // PASS
 	}
 
 	public static void instructionTester(Solution solution) {
@@ -86,6 +86,7 @@ public class AP_tester_kohei {
 		System.out.println("should abort less than 100ms");
 		long startTime = System.currentTimeMillis();
 		System.out.println(solution.runCommand("abort"));
+		System.out.println(solution.runCommand("running"));
 		long endTime = System.currentTimeMillis();
 		long duration = endTime - startTime;
 		return ("Method execution time: " + duration + " ms");
@@ -250,6 +251,7 @@ public class AP_tester_kohei {
 	public static void callGetAfterCancelAndAbort(Solution solution) {
 		System.out.println(solution.runCommand("start 88888888"));
 		System.out.println(solution.runCommand("start 99999999"));
+		System.out.println(solution.runCommand("get 99999999"));
 		System.out.println(solution.runCommand("cancel 88888888"));
 		System.out.println(solution.runCommand("get 88888888"));
 		System.out.println(solution.runCommand("abort"));

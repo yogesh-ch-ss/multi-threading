@@ -154,7 +154,7 @@ public class Solution implements CommandRunner {
                 }
 
                 //
-                return "cancelled non-existent calculation";
+                return "cancelled waiting/non-existent calculation";
             }
         }
 
