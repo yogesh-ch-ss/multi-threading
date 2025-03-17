@@ -211,8 +211,13 @@ public class AP_tester_kohei {
 		 */
 		System.out.println("⇩all of them should say Invalid command");
 		System.out.println(solution.runCommand("start"));
+		System.out.println(solution.runCommand("start abcde"));
+		System.out.println(solution.runCommand("cancel"));
+		System.out.println(solution.runCommand("cancel abcde"));
 		System.out.println(solution.runCommand("start 11111111 2222"));
 		System.out.println(solution.runCommand("after 11111111 2222 3333"));
+		System.out.println(solution.runCommand("after abcde"));
+		System.out.println(solution.runCommand("after abcde fghijk"));
 		System.out.println(solution.runCommand("after 11111111"));
 		System.out.println(solution.runCommand("after"));
 		System.out.println(solution.runCommand("cancel 777 1212"));

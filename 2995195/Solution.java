@@ -31,13 +31,21 @@ public class Solution implements CommandRunner {
 
         if (commandFull.length == 2 && commandString.equals("start")) {
             // start N
-            Long n = Long.parseLong(commandFull[1]);
-            return commandStart(n);
+            try {
+                Long n = Long.parseLong(commandFull[1]);
+                return commandStart(n);
+            } catch (NumberFormatException e) {
+                return "Invalid command";
+            }
 
         } else if (commandFull.length == 2 && commandString.equals("cancel")) {
             // cancel N
-            Long n = Long.parseLong(commandFull[1]);
-            return commandCancel(n);
+            try {
+                Long n = Long.parseLong(commandFull[1]);
+                return commandCancel(n);
+            } catch (NumberFormatException e) {
+                return "Invalid command";
+            }
 
         } else if (commandFull.length == 1 && commandString.equals("running")) {
             // running
@@ -45,14 +53,22 @@ public class Solution implements CommandRunner {
 
         } else if (commandFull.length == 2 && commandString.equals("get")) {
             // get N
-            Long n = Long.parseLong(commandFull[1]);
-            return commandGet(n);
+            try {
+                Long n = Long.parseLong(commandFull[1]);
+                return commandGet(n);
+            } catch (NumberFormatException e) {
+                return "Invalid command";
+            }
 
         } else if (commandFull.length == 3 && commandString.equals("after")) {
             // after N M
-            Long n = Long.parseLong(commandFull[1]);
-            Long m = Long.parseLong(commandFull[2]);
-            return commandAfter(n, m);
+            try {
+                Long n = Long.parseLong(commandFull[1]);
+                Long m = Long.parseLong(commandFull[2]);
+                return commandAfter(n, m);
+            } catch (NumberFormatException e) {
+                return "Invalid command";
+            }
 
         } else if (commandFull.length == 1 && commandString.equals("finish")) {
             // finish
