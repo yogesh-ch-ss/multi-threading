@@ -133,6 +133,7 @@ public class Solution implements CommandRunner {
                     // start threads after n even if n is not running currently
                     this.startThreadsAfterN(n);
                     this.cancelledCalculations.add(n);
+                    this.afterHashMap.remove(n);
                     return "removed from after";
                 }
 
